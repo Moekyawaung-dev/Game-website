@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOE · GAME LAB</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --neon-cyan: #00fff5;
+    --neon-pink: #ff006e;
+    --neon-yellow: #fff700;
+    --neon-green: #39ff14;
+    --neon-purple: #bf5af2;
+    --dark-bg: #030811;
+    --card-bg: #060f1e;
+    --grid-color: rgba(0,255,245,0.04);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--dark-bg);
+    color: #e0f7ff;
+    font-family: 'Share Tech Mono', monospace;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    position: fixed;
+    width: 12px; height: 12px;
+    background: var(--neon-cyan);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    mix-blend-mode: screen;
+    transition: transform 0.1s;
+    box-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
+  }
+  .cursor-ring {
+    position: fixed;
+    width: 32px; height: 32px;
+    border: 1px solid var(--neon-cyan);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transition: all 0.15s ease;
+    opacity: 0.5;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--grid-color) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Scanlines */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
+    animation: scanlines 8s linear infinite;
+  }
+  @keyframes scanlines {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 400px; }
+  }
+
+  /* Header */
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 60px 5% 40px;
+    text-align: center;
+    border-bottom: 1px solid rgba(0,255,245,0.1);
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 40px;
+  }
+
+  .github-link {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--neon-cyan);
+    text-decoration: none;
+    border: 1px solid var(--neon-cyan);
+    padding: 6px 14px;
+    letter-spacing: 0.1em;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .github-link:hover {
+    background: var(--neon-cyan);
+    color: var(--dark-bg);
+    box-shadow: 0 0 20px var(--neon-cyan);
+  }
+
+  .status-bar {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--neon-green);
+    box-shadow: 0 0 8px var(--neon-green);
+    animation: blink 1.5s infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+  .status-text {
+    font-size: 0.65rem;
+    color: var(--neon-green);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .hero-title {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: clamp(2.5rem, 7vw, 6rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    position: relative;
+    display: inline-block;
+  }
+  .hero-title .line1 {
+    color: var(--neon-cyan);
+    text-shadow: 0 0 20px var(--neon-cyan), 0 0 60px rgba(0,255,245,0.3);
+    display: block;
+    animation: glitch1 4s infinite;
+  }
+  .hero-title .line2 {
+    color: var(--neon-pink);
+    text-shadow: 0 0 20px var(--neon-pink), 0 0 60px rgba(255,0,110,0.3);
+    display: block;
+    font-size: 0.5em;
+    letter-spacing: 0.4em;
+    margin-top: 8px;
+    animation: glitch2 4s infinite;
+  }
+
+  @keyframes glitch1 {
+    0%,90%,100% { clip-path: none; transform: none; }
+    92% { clip-path: polygon(0 20%, 100% 20%, 100% 50%, 0 50%); transform: translate(-3px, 0); }
+    94% { clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%); transform: translate(3px, 0); }
+    96% { clip-path: none; transform: none; }
+  }
+  @keyframes glitch2 {
+    0%,93%,100% { opacity: 1; }
+    95% { opacity: 0.3; transform: translateX(4px); }
+  }
+
+  .hero-sub {
+    margin-top: 24px;
+    font-size: 0.7rem;
+    color: rgba(224,247,255,0.5);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 36px;
+    flex-wrap: wrap;
+  }
+  .stat-item {
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 15px var(--neon-yellow);
+    display: block;
+  }
+  .stat-label {
+    font-size: 0.6rem;
+    color: rgba(224,247,255,0.4);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* Filter tabs */
+  .filter-section {
+    position: relative;
+    z-index: 10;
+    padding: 32px 5% 0;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    padding: 7px 16px;
+    border: 1px solid rgba(0,255,245,0.2);
+    background: transparent;
+    color: rgba(224,247,255,0.5);
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    border-color: var(--neon-cyan);
+    color: var(--neon-cyan);
+    background: rgba(0,255,245,0.05);
+    box-shadow: 0 0 12px rgba(0,255,245,0.2);
+  }
+  .filter-btn.active {
+    background: rgba(0,255,245,0.1);
+  }
+
+  /* Games grid */
+  .games-section {
+    position: relative;
+    z-index: 10;
+    padding: 32px 5% 80px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+
+  /* Game card */
+  .game-card {
+    background: var(--card-bg);
+    border: 1px solid rgba(0,255,245,0.08);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    group: true;
+  }
+  .game-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,255,245,0.03) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .game-card:hover {
+    border-color: var(--card-accent, var(--neon-cyan));
+    box-shadow: 0 0 30px rgba(0,255,245,0.1), inset 0 0 30px rgba(0,255,245,0.03);
+    transform: translateY(-4px);
+  }
+  .game-card:hover .card-corner-tl,
+  .game-card:hover .card-corner-br { opacity: 1; }
+
+  .card-corner-tl, .card-corner-br {
+    position: absolute;
+    width: 14px; height: 14px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 2;
+  }
+  .card-corner-tl {
+    top: 0; left: 0;
+    border-top: 2px solid var(--card-accent, var(--neon-cyan));
+    border-left: 2px solid var(--card-accent, var(--neon-cyan));
+  }
+  .card-corner-br {
+    bottom: 0; right: 0;
+    border-bottom: 2px solid var(--card-accent, var(--neon-cyan));
+    border-right: 2px solid var(--card-accent, var(--neon-cyan));
+  }
+
+  /* Game preview area */
+  .card-preview {
+    height: 180px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Pixel art game icons via CSS */
+  .game-icon {
+    font-size: 3rem;
+    position: relative;
+    z-index: 2;
+    animation: float 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 12px currentColor);
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .card-bg-anim {
+    position: absolute;
+    inset: 0;
+    opacity: 0.15;
+  }
+
+  /* Card content */
+  .card-body {
+    padding: 20px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .card-tags {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .tag {
+    font-size: 0.55rem;
+    padding: 3px 8px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-radius: 0;
+  }
+
+  .card-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #e0f7ff;
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+
+  .card-desc {
+    font-size: 0.68rem;
+    color: rgba(224,247,255,0.5);
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .card-tech {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .tech-badge {
+    font-size: 0.55rem;
+    color: rgba(224,247,255,0.35);
+    background: rgba(255,255,255,0.04);
+    padding: 3px 7px;
+    letter-spacing: 0.05em;
+  }
+
+  .card-links {
+    display: flex;
+    gap: 8px;
+  }
+  .card-link {
+    font-size: 0.6rem;
+    padding: 6px 12px;
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .link-demo {
+    background: var(--card-accent, var(--neon-cyan));
+    color: var(--dark-bg);
+    font-weight: bold;
+  }
+  .link-demo:hover {
+    box-shadow: 0 0 16px var(--card-accent, var(--neon-cyan));
+  }
+  .link-code {
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(224,247,255,0.6);
+  }
+  .link-code:hover {
+    border-color: rgba(224,247,255,0.4);
+    color: #e0f7ff;
+  }
+
+  /* Stars / score */
+  .card-score {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+  }
+  .score-star { color: var(--neon-yellow); }
+  .score-num { color: rgba(224,247,255,0.5); }
+
+  /* Featured badge */
+  .featured-badge {
+    position: absolute;
+    top: 12px; right: 12px;
+    font-size: 0.55rem;
+    padding: 4px 10px;
+    background: var(--neon-pink);
+    color: #000;
+    font-weight: bold;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    z-index: 5;
+    animation: pulse-badge 2s infinite;
+  }
+  @keyframes pulse-badge {
+    0%,100% { box-shadow: 0 0 8px var(--neon-pink); }
+    50% { box-shadow: 0 0 20px var(--neon-pink), 0 0 40px rgba(255,0,110,0.4); }
+  }
+
+  /* Footer */
+  footer {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 40px;
+    border-top: 1px solid rgba(0,255,245,0.05);
+  }
+  .footer-text {
+    font-size: 0.65rem;
+    color: rgba(224,247,255,0.25);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .footer-text a {
+    color: var(--neon-cyan);
+    text-decoration: none;
+  }
+
+  /* Canvas for animated backgrounds */
+  canvas.bg-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .games-section { grid-template-columns: 1fr; }
+    .header-top { flex-direction: column; gap: 16px; }
+    .stats-row { gap: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<header>
+  <div class="header-top">
+    <div class="status-bar">
+      <div class="status-dot"></div>
+      <span class="status-text">All systems online</span>
+    </div>
+    <a href="https://github.com/moekyaw-aung" class="github-link" target="_blank">⌥ GitHub Profile</a>
+  </div>
+
+  <div class="hero-title">
+    <span class="line1">GAME LAB</span>
+    <span class="line2">by Moe Kyaw Aung</span>
+  </div>
+  <p class="hero-sub">Browser Games · Interactive Experiments · Web Playgrounds</p>
+
+  <div class="stats-row">
+    <div class="stat-item">
+      <span class="stat-num" id="count-games">08</span>
+      <span class="stat-label">Games Built</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">JS</span>
+      <span class="stat-label">Primary Stack</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">∞</span>
+      <span class="stat-label">Hours Played</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">★ 4.9</span>
+      <span class="stat-label">Avg Rating</span>
+    </div>
+  </div>
+</header>
+
+<div class="filter-section">
+  <button class="filter-btn active" onclick="filterCards(this,'all')">ALL GAMES</button>
+  <button class="filter-btn" onclick="filterCards(this,'puzzle')">PUZZLE</button>
+  <button class="filter-btn" onclick="filterCards(this,'action')">ACTION</button>
+  <button class="filter-btn" onclick="filterCards(this,'arcade')">ARCADE</button>
+  <button class="filter-btn" onclick="filterCards(this,'strategy')">STRATEGY</button>
+  <button class="filter-btn" onclick="filterCards(this,'ai')">AI-POWERED</button>
+</div>
+
+<div class="games-section" id="gamesGrid">
+
+  <!-- Card 1: Snake -->
+  <div class="game-card" style="--card-accent: #39ff14;" data-tags="arcade action">
+    <div class="card-corner-tl"></div>
+    <div class="card-corner-br"></div>
+    <div class="card-preview" style="background: #020a02;">
+      <canvas class="bg-canvas" id="snake-canvas"></canvas>
+      <div class="game-icon" style="color:#39ff14;">🐍</div>
+    </div>
+    <div class="card-body">
+      <div class="card-tags">
+        <span class="tag" style="background:rgba(57,255,20,0.1);color:#39ff14;border:1px solid rgba(57,255,20,0.3);">ARCADE</span>
+        <span class="tag" style="background:rgba(57,255,20,0.1);color:#39ff14;border:1px solid rgba(57,255,20,0.3);">ACTION</span>
+      </div>
+      <div class="card-title">NEON SNAKE</div>
+      <div class="card-desc">Classic snake reimagined with cyberpunk aesthetics. Grow your neon serpent, avoid walls, chase glowing orbs. High score tracking with localStorage.</div>
+      <div class="card-footer">
+        <div class="card-score">
+          <span class="score-star">★★★★★</span>
+          <span class="score-num">5.0</span>
+        </div>
+        <div class="card-links">
+          <a href="#" class="card-link link-demo" style="background:#39ff14;">PLAY</a>
+          <a href="https://github.com/moekyaw-aung" class="card-link link-code" target="_blank">CODE</a>
+        </div>
+      </div>
+      <div class="card-tech" style="margin-top:10px;">
+        <span class="tech-badge">Canvas 2D</span>
+        <span class="tech-badge">Vanilla JS</span>
+        <span class="tech-badge">CSS Animations</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 2: Memory Match -->
+  <div class="game-card" style="--card-accent: #bf5af2;" data-tags="puzzle">
+    <div class="card-corner-tl"></div>
+    <div class="card-corner-br"></div>
+    <div class="featured-badge">FEATURED</div>
+    <div class="card-preview" style="background: #0a0315;">
+      <canvas class="bg-canvas" id="memory-canvas"></canvas>
+      <div class="game-icon" style="color:#bf5af2;">🃏</div>
+    </div>
+    <div class="card-body">
+      <div class="card-tags">
+        <span class="tag" style="background:rgba(191,90,242,0.1);color:#bf5af2;border:1px solid rgba(191,90,242,0.3);">PUZZLE</span>
+      </div>
+      <div class="card-title">MEMORY MATRIX</div>
+      <div class="card-desc">Flip and match glowing tiles in this cyberpunk memory challenge. 4 difficulty levels, timer mode, and combo multiplier system for high scores.</div>
+      <div class="card-footer">
+        <div class="card-score">
+          <span class="score-star">★★★★★</span>
+          <span class="score-num">4.9</span>
+        </div>
+        <div class="card-links">
+          <a href="#" class="card-link link-demo" style="background:#bf5af2;">PLAY</a>
+          <a href="https://github.com/moekyaw-aung" class="card-link link-code" target="_blank">CODE</a>
+        </div>
+      </div>
+      <div class="card-tech" style="margin-top:10px;">
+        <span class="tech-badge">React</span>
+        <span class="tech-badge">Framer Motion</span>
+        <span class="tech-badge">Hooks</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 3: Tetris -->
+  <div class="game-card" style="--card-accent: #00fff5;" data-tags="arcade puzzle">
+    <div class="card-corner-tl"></div>
+    <div class="card-corner-br"></div>
+    <div class="card-preview" style="background: #020a0f;">
+      <canvas class="bg-canvas" id="tetris-canvas"></canvas>
+      <div class="game-icon" style="color:#00fff5;">🧱</div>
+    </div>
+    <div class="card-body">
+      <div class="card-tags">
+        <span class="tag" style="background:rgba(0,255,245,0.1);color:#00fff5;border:1px solid rgba(0,255,245,0.3);">ARCADE</span>
+        <span class="tag" style="background:rgba(0,255,245,0.1);color:#00fff5;border:1px solid rgba(0,255,245,0.3);">PUZZLE</span>
+      </div>
+      <div class="card-title">CYBER TETRIS</div>
+      <div class="card-desc">Neon block stacking with particle explosion on line clear. Progressive speed increase, ghost piece preview, and hold piece mechanics.</div>
+      <div class="card-footer">
+        <div class="card-score">
+          <span class="score-star">★★★★☆</span>
+          <span class="score-num">4.8</span>
+        </div>
+        <div class="card-links">
+          <a href="#" class="card-link link-demo">PLAY</a>
+          <a href="https://github.com/moekyaw-aung" class="card-link link-code" target="_blank">CODE</a>
+        </div>
+      </div>
+      <div class="card-tech" style="margin-top:10px;">
+        <span class="tech-badge">Canvas 2D</span>
+        <span class="tech-badge">ES6+</span>
+        <span class="tech-badge">Web Audio</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 4: AI Chess -->
+  <div class="game-card" style="--card-accent: #fff700;" data-tags="ai strategy">
+    <div class="card-corner-tl"></div>
+    <div class="card-corner-br"></div>
+    <div class="featured-badge" style="background: var(--neon-yellow); color:#000;">AI</div>
+    <div class="card-preview" style="background: #0a0900;">
+      <canvas class="bg-canvas" id="chess-canvas"></canvas>
+      <div class="game-icon" style="color:#fff700;">♟️</div>
+    </div>
+    <div class="card-body">
+      <div class="card-tags">
+        <span class="tag" style="background:rgba(255,247,0,0.1);color:#fff700;border:1px solid rgba(255,247,0,0.3);">AI</span>
+        <span class="tag" style="background:rgba(255,247,0,0.1);color:#fff700;border:1px solid rgba(255,247,0,0.3);">STRATEGY</span>
+      </div>
+      <div class="card-title">GEMINI CHESS</div>
+      <div class="card-desc">Play chess against Gemini AI with real-time commentary. The AI explains every move, adapts difficulty, and can hint at strategies. Powered by Gemini API.</div>
+      <div class="card-footer">
+        <div class="card-score">
+          <span class="score-star">★★★★★</span>
+          <span class="score-num">5.0</span>
+        </div>
+        <div class="card-links">
+          <a href="#" class="card-link link-demo" style="background:#fff700;color:#000;">PLAY</a>
+          <a href="https://github.com/moekyaw-aung" class="card-link link-code" target="_blank">CODE</a>
+        </div>
+      </div>
+      <div class="card-tech" style="margin-top:10px;">
+        <span class="tech-badge">Gemini API</span>
+        <span class="tech-badge">TypeScript</span>
+        <span class="tech-badge">Firebase</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 5: Space Shooter -->
+  <div class="game-card" style="--card-accent: #ff006e;" data-tags="action arcade">
+    <div class="card-corner-tl"></div>
+    <div class="card-corner-br"></div>
+    <div class="card-preview" style="background: #0a0005;">
+      <canvas class="bg-canvas" id="space-canvas"></canvas>
+      <div class="game-icon" style="color:#ff006e;">🚀</div>
+    </div>
+    <div class="card-body">
+      <div class="card-tags">
+        <span class="tag" style="background:rgba(255,0,110,0.1);color:#ff006e;border:1px solid rgba(255,0,110,0.3);">ACTION</span>
+        <span class="tag" style="background:rgba(255,0,110,0.1);color:#ff006e;border:1px solid rgba(255,0,110,0.3);">ARCADE</span>
+      </div>
+      <div class="card-title">VOID SHOOTER</div>
+      <div class="card-desc">Retro space shooter with procedural enemy patterns, screen shake, and particle systems. Boss fights every 5 waves with unique attack patterns.</div>
+      <div class="card-footer">
+        <div class="card-score">
+          <span class="score-star">★★★★☆</span>
+          <span class="score-num">4.7</span>
+        </div>
+        <div class="card-links">
+          <a href="#" class="card-link link-demo" style="background:#ff006e;">PLAY</a>
+          <a href="https://github.com/moekyaw-aung" class="card-link link-code" target="_blank">CODE</a>
+        </div>
+      </div>
+      <div class="card-tech" style="margin-top:10px;">
+        <span class="tech-badge">Canvas 2D</span>
+        <span class="tech-badge">Vanilla JS</span>
+        <span class="tech-badge">Procedural Gen</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 6: Word Puzzle -->
+  <div class="game-card" style="--card-accent: #ff9500;" data-tags="puzzle ai">
+    <div class="card-corner-tl"></div>
+    <div class="card-corner-br"></div>
+    <div class="card-preview" style="background: #0a0600;">
+      <canvas class="bg-canvas" id="word-canvas"></canvas>
+      <div class="game-icon" style="color:#ff9500;">🔤</div>
+    </div>
+    <div class="card-body">
+      <div class="card-tags">
+        <span class="tag" style="background:rgba(255,149,0,0.1);color:#ff9500;border:1px solid rgba(255,149,0,0.3);">PUZZLE</span>
+        <span class="tag" style="background:rgba(255,149,0,0.1);color:#ff9500;border:1px solid rgba(255,149,0,0.3);">AI</span>
+      </div>
+      <div class="card-title">WORD FORGE</div>
+      <div class="card-desc">AI-generated word puzzles with Burmese & English support. Gemini creates unique riddles and clues dynamically. New puzzle every session.</div>
+      <div class="card-footer">
+        <div class="card-score">
+          <span class="score-star">★★★★☆</span>
+          <span class="score-num">4.6</span>
+        </div>
+        <div class="card-links">
+          <a href="#" class="card-link link-demo" style="background:#ff9500;color:#000;">PLAY</a>
+          <a href="https://github.com/moekyaw-aung" class="card-link link-code" target="_blank">CODE</a>
+        </div>
+      </div>
+      <div class="card-tech" style="margin-top:10px;">
+        <span class="tech-badge">Gemini API</span>
+        <span class="tech-badge">Kotlin/WASM</span>
+        <span class="tech-badge">i18n</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 7: 2048 -->
+  <div class="game-card" style="--card-accent: #00d4ff;" data-tags="puzzle strategy">
+    <div class="card-corner-tl"></div>
+    <div class="card-corner-br"></div>
+    <div class="card-preview" style="background: #020810;">
+      <canvas class="bg-canvas" id="c2048-canvas"></canvas>
+      <div class="game-icon" style="color:#00d4ff;">🔢</div>
+    </div>
+    <div class="card-body">
+      <div class="card-tags">
+        <span class="tag" style="background:rgba(0,212,255,0.1);color:#00d4ff;border:1px solid rgba(0,212,255,0.3);">PUZZLE</span>
+        <span class="tag" style="background:rgba(0,212,255,0.1);color:#00d4ff;border:1px solid rgba(0,212,255,0.3);">STRATEGY</span>
+      </div>
+      <div class="card-title">HYPER 2048</div>
+      <div class="card-desc">2048 with a twist: power-ups, hex grid variant, and time attack mode. Animated tile merges with neon glow effects and satisfying sound design.</div>
+      <div class="card-footer">
+        <div class="card-score">
+          <span class="score-star">★★★★☆</span>
+          <span class="score-num">4.5</span>
+        </div>
+        <div class="card-links">
+          <a href="#" class="card-link link-demo" style="background:#00d4ff;color:#000;">PLAY</a>
+          <a href="https://github.com/moekyaw-aung" class="card-link link-code" target="_blank">CODE</a>
+        </div>
+      </div>
+      <div class="card-tech" style="margin-top:10px;">
+        <span class="tech-badge">Jetpack Compose</span>
+        <span class="tech-badge">Kotlin</span>
+        <span class="tech-badge">MVVM</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 8: Maze Runner -->
+  <div class="game-card" style="--card-accent: #a8ff3e;" data-tags="action puzzle">
+    <div class="card-corner-tl"></div>
+    <div class="card-corner-br"></div>
+    <div class="card-preview" style="background: #040a02;">
+      <canvas class="bg-canvas" id="maze-canvas"></canvas>
+      <div class="game-icon" style="color:#a8ff3e;">🌀</div>
+    </div>
+    <div class="card-body">
+      <div class="card-tags">
+        <span class="tag" style="background:rgba(168,255,62,0.1);color:#a8ff3e;border:1px solid rgba(168,255,62,0.3);">ACTION</span>
+        <span class="tag" style="background:rgba(168,255,62,0.1);color:#a8ff3e;border:1px solid rgba(168,255,62,0.3);">PUZZLE</span>
+      </div>
+      <div class="card-title">LABYRINTH X</div>
+      <div class="card-desc">Procedurally generated mazes using recursive backtracking algorithm. Fog of war, collectibles, and time limit. Each maze is unique and never repeats.</div>
+      <div class="card-footer">
+        <div class="card-score">
+          <span class="score-star">★★★★☆</span>
+          <span class="score-num">4.8</span>
+        </div>
+        <div class="card-links">
+          <a href="#" class="card-link link-demo" style="background:#a8ff3e;color:#000;">PLAY</a>
+          <a href="https://github.com/moekyaw-aung" class="card-link link-code" target="_blank">CODE</a>
+        </div>
+      </div>
+      <div class="card-tech" style="margin-top:10px;">
+        <span class="tech-badge">Canvas 2D</span>
+        <span class="tech-badge">Algorithms</span>
+        <span class="tech-badge">TypeScript</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p class="footer-text">
+    Built by <a href="https://github.com/moekyaw-aung">moekyaw-aung</a> · Tachileik, Myanmar · 
+    <a href="mailto:moekyawaung@graduate.org">moekyawaung@graduate.org</a>
+  </p>
+  <p class="footer-text" style="margin-top:8px; color: rgba(224,247,255,0.12);">
+    &lt;/&gt; with ♥ using HTML · CSS · JavaScript · Gemini AI
+  </p>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx - 6 + 'px';
+    cursor.style.top = my - 6 + 'px';
+  });
+  function animRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx - 16 + 'px';
+    ring.style.top = ry - 16 + 'px';
+    requestAnimationFrame(animRing);
+  }
+  animRing();
+
+  // Filter
+  function filterCards(btn, tag) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.game-card').forEach(card => {
+      const tags = card.dataset.tags || '';
+      if (tag === 'all' || tags.includes(tag)) {
+        card.style.display = '';
+        card.style.animation = 'none';
+        card.offsetHeight;
+        card.style.animation = 'fadeIn 0.3s ease forwards';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+
+  // Canvas animations for card backgrounds
+  function makeParticles(canvasId, color) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth || 300;
+    canvas.height = canvas.offsetHeight || 180;
+    const pts = Array.from({length: 30}, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random()-0.5)*0.5,
+      vy: (Math.random()-0.5)*0.5,
+      r: Math.random()*2+0.5
+    }));
+    function draw() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      pts.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if(p.x<0||p.x>canvas.width) p.vx*=-1;
+        if(p.y<0||p.y>canvas.height) p.vy*=-1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        ctx.fillStyle = color;
+        ctx.fill();
+      });
+      // Connect nearby particles
+      for(let i=0;i<pts.length;i++) for(let j=i+1;j<pts.length;j++) {
+        const d = Math.hypot(pts[i].x-pts[j].x, pts[i].y-pts[j].y);
+        if(d < 70) {
+          ctx.beginPath();
+          ctx.moveTo(pts[i].x, pts[i].y);
+          ctx.lineTo(pts[j].x, pts[j].y);
+          ctx.strokeStyle = color.replace('1)', (1-d/70)*0.4+')');
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+  }
+
+  makeParticles('snake-canvas', 'rgba(57,255,20,1)');
+  makeParticles('memory-canvas', 'rgba(191,90,242,1)');
+  makeParticles('tetris-canvas', 'rgba(0,255,245,1)');
+  makeParticles('chess-canvas', 'rgba(255,247,0,1)');
+  makeParticles('space-canvas', 'rgba(255,0,110,1)');
+  makeParticles('word-canvas', 'rgba(255,149,0,1)');
+  makeParticles('c2048-canvas', 'rgba(0,212,255,1)');
+  makeParticles('maze-canvas', 'rgba(168,255,62,1)');
+
+  // Add fadeIn keyframe dynamically
+  const style = document.createElement('style');
+  style.textContent = '@keyframes fadeIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }';
+  document.head.appendChild(style);
+</script>
+</body>
+</html>
